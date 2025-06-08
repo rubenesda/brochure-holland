@@ -53,7 +53,7 @@ class Website:
     def get_contents(self):
         return f"Webpage Title:\n{self.title}\nWebpage Contents:\n{self.text}\n\n"
 
-ed = Website("https://edwarddonner.com")
+ed = Website("https://huggingface.com")
 
 link_system_prompt = "You are provided with a list of links found on a webpage. \
 You are able to decide which of the links would be most relevant to include in a brochure about the company, \
@@ -126,5 +126,19 @@ def create_brochure(company_name, url):
     print(result)
 
 
-create_brochure("Edward Donner", "https://edwarddonner.com")
+def stream_brochure(company_name, url):
+    stream = openai.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": get_brochure_user_prompt(company_name, url)}
+          ],
+        stream=True
+    )
 
+    response = ""
+
+    for chunk in stream:
+        print(chunk.choices[0].delta.content, end='', flush=True)
+        response += chunk.choices[0].delta.content or ''
+        response = response.replace("```","").replace("markdown", "")
