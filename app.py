@@ -123,7 +123,7 @@ def create_brochure(company_name, url):
           ],
     )
     result = response.choices[0].message.content
-    print(result)
+    return result
 
 
 def stream_brochure(company_name, url):
@@ -142,3 +142,29 @@ def stream_brochure(company_name, url):
         print(chunk.choices[0].delta.content, end='', flush=True)
         response += chunk.choices[0].delta.content or ''
         response = response.replace("```","").replace("markdown", "")
+
+
+spanish_system_prompt = "You are an assistant that will receive a company brochure in markdown format, \
+    you will help us to translate it into spanish language. Try to keep the same tone and style as the original brochure, \
+    you can employ Colombia idioms and common expressions"
+
+
+def spanish_user_prompt(company_name, url):
+    user_prompt = f"You're looking at a company called {company_name}. Here is the company brochure in markdown format of\n"
+    user_prompt += f"{create_brochure(company_name, url)}. Please translate it into Spanish language, keeping the same tone and style"
+    return user_prompt
+
+
+def translate_brochure(company_name, url):
+    response = openai.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": spanish_system_prompt},
+            {"role": "user", "content": spanish_user_prompt(company_name, url)}
+        ]
+    )
+    result = response.choices[0].message.content
+    print(result)
+
+
+translate_brochure("Edward Donner CIA", "https://edwarddonner.com")
